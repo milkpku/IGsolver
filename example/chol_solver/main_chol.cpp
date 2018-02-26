@@ -1,17 +1,18 @@
-#include "Chol_solver.h"
-
 #include <functional>
 #include <iostream>
 #include <cmath>
 
+#include <boost/format.hpp>
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <boost/format.hpp>
+#include "Chol_solver.h"
+
 
 int main(int argc, char* argv[])
 {
-  using namespace IGsolver;
+  using namespace IGsolver::Chol;
   /* f = 0.5 * x1^2 * (x_1^2/6 + 1) + x2 * arctan(x2) - 0.5 * ln(x2^2 + 1)
    * f' = [x1^3/3 + x1; arctan(x2)]
    * f'' = diag{x1^2 + 1, 1/(1+x2^2)}
@@ -42,7 +43,7 @@ int main(int argc, char* argv[])
     return e_next < e;
   };
 
-  Iter_fun f_iter = [](const int n_iter, const int cut_cnt, const dVec& X, const double& eval, const dVec& dX, const dVec& grad)
+  Fun_iter f_iter = [](const int n_iter, const int cut_cnt, const dVec& X, const double& eval, const dVec& dX, const dVec& grad)
   {
     std::cout << boost::format("[iter %d] e = %g, grad = %g, dX = %g, cut_cnt = %d\n") 
       % n_iter % eval % grad.norm() % dX.norm() % cut_cnt;
