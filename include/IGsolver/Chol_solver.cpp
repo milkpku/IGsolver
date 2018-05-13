@@ -48,7 +48,7 @@ namespace Chol
     int n_iter = 0;
     dVec dX = dVec::Zero(X.size());
 
-    double lambda = 1e-3 * hess.diagonal().mean();
+    double lambda = 1e-3 * abs(hess.diagonal().mean());
     hess += lambda * D;
     solver.analyzePattern(hess);
 
