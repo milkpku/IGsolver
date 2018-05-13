@@ -21,7 +21,7 @@
 namespace IGsolver {
 namespace SQP
 {
-  void SQP_solver(dVec& solution, Fun_grad_hessian fun_eval, Fun_constraint fun_cons, Fun_iter iter_fun, SQP_Config config)
+  void SQP_solver(dVec& solution, Fun_eval fun_eval,  Fun_grad_hess_Jc fun_grad, Fun_iter iter_fun, SQP_Config config)
   {
     /* initialization */
     double e;
@@ -30,8 +30,7 @@ namespace SQP
     dVec c;
     SpMat Jc;
 
-    fun_eval(solution, e, grad, hessian);
-    fun_cons(solution, c, Jc);
+    fun_grad(solution, e, grad, hessian, c, Jc);
 
     /* build SQP matrix and residual */
     typedef Eigen::Triplet<double> Triplet;
@@ -65,73 +64,92 @@ namespace SQP
       return res;
     };
 
+    auto merit_function = [&](const dVec& sol, const dVec& dX, const dVec& lambda)
+    {
+      double e_merit;
+      dVec c_merit;
+      fun_eval(sol + dX, e_merit, c_merit);
+      e_merit += c_merit.dot(lambda) + config.mu * c_merit.squaredNorm();
+      return e_merit;
+    };
+
     /* preparing loop */
     SpMat W = get_W(hessian, Jc);
     dVec res = get_res(grad, c);
     SOLVER solver;
     solver.analyzePattern(W);
-    double c_norm = c.norm();
 
     /* starg loop */
     int n_iter = 0;
-    dVec dX = dVec::Ones(solution.size());
+    double dx_norm = 1;
     dVec grad_res = dVec::Ones(c.size());
-    dVec dX_mean = dX;
-    dVec dX_var = dX;
-    while ((grad_res.norm() > config.g_res_norm || dX.norm() > config.dx_norm))
+    while ((grad_res.norm() > config.g_res_norm || dx_norm > config.dx_norm))
     {
       n_iter++;
       /* solve problem */
       solver.factorize(W);
       if (solver.info() != Eigen::Success)
       {
+        std::cout << "recompute W\n";
+        solver.compute(W);
+      }
+      if (solver.info() != Eigen::Success)
+      {
         std::cout << "fail to fractorize W\n";
+        {
+          // assert hessian nan
+          for (int i = 0; i < hessian.outerSize(); i++)
+            for (SpMat::InnerIterator it(hessian, i); it; ++it)
+            {
+              if (isnan(it.value()))
+              {
+                std::cout << boost::format("NaN in hessian : (%d, %d)\n") % it.row() % it.col();
+              }
+            }
+
+          // assert Jc nan
+          for (int i = 0; i < Jc.outerSize(); i++)
+            for (SpMat::InnerIterator it(Jc, i); it; ++it)
+            {
+              if (isnan(it.value()))
+              {
+                std::cout << boost::format("NaN in Jc : (%d, %d)\n") % it.row() % it.col();
+              }
+            }
+        }
         assert(false && "numerical error");
         return;
       }
       dVec dL = solver.solve(res);
+      dVec dX = dL.head(solution.size());
+      dVec lambda = dL.tail(c.size());
 
-      /* test constraint satisfication */
+      /* test decrease of merit function
+       * e_merit = e + lambda * c + mu * c^2
+       *   */
       int cut_cnt = 0;
-      fun_cons(solution + dL.head(solution.size()), c, Jc);
-      while (c.norm() > std::max(c_norm, config.c_norm) && cut_cnt < config.cut_iter)
+      double e_start = e + lambda.dot(c) + config.mu * c.squaredNorm();
+      double e_next = merit_function(solution, dX, lambda);
+      while ((isnan(e_next) || e_next > e_start) && cut_cnt < config.cut_iter)
       {
-        std::cout << boost::format("[Constriant cut]: c_next > max(c, config), %g > max(%g, %g)\n")
-          % c.norm() % c_norm % config.c_norm;
-        cut_cnt++;
-        dL /= 2;
-        fun_cons(solution + dL.head(solution.size()), c, Jc);
-      }
-
-      /* if SQP is satisfied, test energy decrease */
-      double e_next;
-      fun_eval(solution + dL.head(solution.size()), e_next, grad, hessian);
-      if (cut_cnt == 0)
-      {
-        while (e_next > e && c.norm() > c_norm && cut_cnt < config.cut_iter)
-        {
-          std::cout << boost::format("[Energy cut]: e_next > e , %g > %g, c_next > c, %g > %g\n") % e_next % e % c.norm() % c_norm;
-          cut_cnt++;
-          dL /= 2;
-          fun_eval(solution + dL.head(solution.size()), e_next, grad, hessian);
-          fun_cons(solution + dL.head(solution.size()), c, Jc);
-        }
+        std::cout << boost::format("[Energy cut]: e_next > e , %g > %g\n") % e_next % e_start;
+        if (!isnan(e_next)) cut_cnt++;
+        dX /= 2;
+        e_next = merit_function(solution, dX, lambda);
       }
 
       /* update */
-      dX = dL.head(solution.size());
       solution += dX;
+      dx_norm = dX.norm();
 
-      e = e_next;
-      c_norm = c.norm();
-
-      /* residual */
-      grad_res = grad + Jc.transpose() * dL.tail(c.size());
-
-      iter_fun(n_iter, cut_cnt, solution, e, dX, grad_res, c);
-
+      fun_grad(solution, e, grad, hessian, c, Jc);
       W = get_W(hessian, Jc);
       res = get_res(grad, c);
+
+      /* residual */
+      grad_res = grad + Jc.transpose() * lambda;
+
+      iter_fun(n_iter, cut_cnt, solution, e, dX, grad_res, c);
     }
 
     /* finish solving */
