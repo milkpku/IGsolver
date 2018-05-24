@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
    * f' = [x1^3/3 + x1; arctan(x2)]
    * f'' = diag{x1^2 + 1, 1/(1+x2^2)}
    */
-  Fun_grad_hessian f_eval = [](const dVec& X, double& eval, dVec& grad, SpMat& hessian)
+  Fun_grad_hessian f_grad = [](const dVec& X, double& eval, dVec& grad, SpMat& hessian)
   {
     double x1 = X(0);
     double x2 = X(1);
@@ -33,14 +33,12 @@ int main(int argc, char* argv[])
     hessian.insert(1, 1) = 1 / (1 + x2 * x2);
   };
 
-  Fun_valid_decrease f_valid = [](const dVec& X, const dVec& dX, const double e, double& e_next)
+  Fun_eval f_eval = [](const dVec& X, const dVec& dX, const double e, double& e_next)
   {
     double x1 = X(0) + dX(0);
     double x2 = X(1) + dX(1);
 
     e_next = 0.5 * x1 * x1 * (x1 * x1 / 6 + 1) + x2 * atan(x2) - 0.5 * log(x2 * x2 + 1);
-
-    return e_next < e;
   };
 
   Fun_iter f_iter = [](const int n_iter, const int cut_cnt, const dVec& X, const double& eval, const dVec& dX, const dVec& grad)
@@ -52,7 +50,7 @@ int main(int argc, char* argv[])
   Chol_Config config;
   dVec sol(2);
   sol << 1, 0.7;
-  Chol_solver(sol, f_eval, f_valid, f_iter, config);
+  Chol_solver(sol, f_eval, f_grad, f_iter, config);
 
   system("pause");
   return 0;

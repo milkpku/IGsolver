@@ -11,7 +11,6 @@ namespace IGsolver{
 
     typedef std::function<void(const dVec& X, double& eval, dVec& c)> Fun_eval;
     typedef std::function<void(const dVec& X, double& eval, dVec& grad, SpMat& hessian, dVec& c, SpMat& Jc)> Fun_grad_hess_Jc;
-    typedef std::function<void(const dVec& X, dVec& c, SpMat& Jc)> Fun_constraint;
     typedef std::function<void(const int n_iter, const int cut_cnt, const dVec& X, const double& eval,
       const dVec& dX, const dVec& grad_res, const dVec& c)> Fun_iter;
 

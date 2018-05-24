@@ -20,7 +20,7 @@
 namespace IGsolver {
 namespace Chol
 {
-  bool Chol_solver(dVec& X, Fun_grad_hessian fun_eval, Fun_valid_decrease fun_valid, Fun_iter iter_fun, Chol_Config config)
+  bool Chol_solver(dVec& X, Fun_eval fun_eval, Fun_grad_hessian fun_grad, Fun_iter iter_fun, Chol_Config config)
   {
     std::clock_t start;
     start = std::clock();
@@ -30,7 +30,7 @@ namespace Chol
     dVec grad;
     SpMat hess;
 
-    fun_eval(X, e, grad, hess);
+    fun_grad(X, e, grad, hess);
 
     /* exame validity of e, grad and hess */
     if (!isfinite(e)) return false;
@@ -75,9 +75,10 @@ namespace Chol
 
       /* solve and cut */
       dX = -solver.solve(grad);
+      double e_next;
+      fun_eval(X, dX, e, e_next);
       int cut_cnt = 0;
-      double e_next = 0;
-      while (!fun_valid(X, dX, e, e_next) && cut_cnt < config.cut_iter && valid_cnt < config.valid_iter)
+      while ((isnan(e_next) || e_next > e) && cut_cnt < config.cut_iter && valid_cnt < config.valid_iter)
       {
         if (isnan(e_next))
         {
@@ -93,13 +94,14 @@ namespace Chol
         hess += lambda * D;
         solver.factorize(hess);
         dX = -solver.solve(grad);
+        fun_eval(X, dX, e, e_next);
       }
 
       if (valid_cnt >= config.valid_iter) return false;
 
       /* step forward */
       X += dX;
-      fun_eval(X, e, grad, hess);
+      fun_grad(X, e, grad, hess);
 
       /* output */
       iter_fun(n_iter, cut_cnt, X, e, dX, grad);

@@ -11,7 +11,7 @@ namespace IGsolver{
     typedef SpMat::InnerIterator          Iter;
 
     typedef std::function<void(const dVec& X, double& eval, dVec& grad, SpMat& hessian)> Fun_grad_hessian;
-    typedef std::function<bool(const dVec& X, const dVec& dX, const double e, double& e_next)> Fun_valid_decrease;
+    typedef std::function<void(const dVec& X, const dVec& dX, const double e, double& e_next)> Fun_eval;
     typedef std::function<void(const int n_iter, const int cut_cnt, const dVec& X, const double& eval,
       const dVec& dX, const dVec& grad)> Fun_iter;
 
@@ -28,7 +28,7 @@ namespace IGsolver{
       bool silent = false;
     };
 
-    bool Chol_solver(dVec& solution, Fun_grad_hessian fun_eval, Fun_valid_decrease fun_valid, Fun_iter iter_fun, Chol_Config config);
+    bool Chol_solver(dVec& solution, Fun_eval fun_eval, Fun_grad_hessian fun_grad, Fun_iter iter_fun, Chol_Config config);
   
   }
 }
