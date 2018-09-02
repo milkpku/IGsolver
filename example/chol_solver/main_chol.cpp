@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "Chol_solver.h"
+#include "IGsolver/Chol_solver.h"
 
 
 int main(int argc, char* argv[])

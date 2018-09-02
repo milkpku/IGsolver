@@ -1,4 +1,4 @@
-#include "Chol_solver.h"
+#include "IGsolver/Chol_solver.h"
 
 #include <ctime>
 #include <iostream>

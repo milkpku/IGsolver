@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/format.hpp>
 
-#include "SQP_solver.h"
+#include "IGsolver/SQP_solver.h"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 

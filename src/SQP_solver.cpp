@@ -1,4 +1,4 @@
-#include "SQP_solver.h"
+#include "IGsolver/SQP_solver.h"
 
 #include <vector>
 #include <iostream>
