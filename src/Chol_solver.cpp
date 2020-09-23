@@ -15,7 +15,6 @@
 
 #include <ctime>
 #include <iostream>
-#include <boost/format.hpp>
 
 /*  You can replace SOLVER with any other Cholesky solvers, such as
 *  
@@ -33,7 +32,8 @@
 namespace IGsolver {
 namespace Chol
 {
-  bool Chol_solver(dVec& X, Fun_eval fun_eval, Fun_grad_hessian fun_grad, Fun_iter iter_fun, Chol_Config config)
+  bool Chol_solver(dVec& X, Fun_eval fun_eval, Fun_grad_hessian fun_grad, 
+      Fun_iter iter_fun, Chol_Config config)
   {
     std::clock_t start;
     start = std::clock();
@@ -46,9 +46,9 @@ namespace Chol
     fun_grad(X, e, grad, hess);
 
     /* exame validity of e, grad and hess */
-    if (!isfinite(e)) return false;
-    if (!isfinite(grad.sum())) return false;
-    if (!isfinite(hess.sum())) return false;
+    if (!std::isfinite(e)) return false;
+    if (!std::isfinite(grad.sum())) return false;
+    if (!std::isfinite(hess.sum())) return false;
 
     /* prepare solver */
     SOLVER solver;
@@ -65,7 +65,8 @@ namespace Chol
     hess += lambda * D;
     solver.analyzePattern(hess);
 
-    while ((grad.norm() > config.grad_norm || dX.norm() > config.dx_norm) && n_iter < config.max_iter)
+    while ((grad.norm() > config.grad_norm || dX.norm() > config.dx_norm) 
+        && n_iter < config.max_iter)
     {
       n_iter++;
 
@@ -79,7 +80,8 @@ namespace Chol
       {
         valid_cnt++;
         lambda *= 10;
-        if (!config.silent) std::cout << boost::format("fail to factorize W, try lambda = %g\n") % lambda;
+        if (!config.silent) 
+          printf("fail to factorize W, try lambda = %g\n", lambda);
         hess += lambda * D;
         solver.factorize(hess);
       }
@@ -91,18 +93,22 @@ namespace Chol
       double e_next;
       fun_eval(X, dX, e, e_next);
       int cut_cnt = 0;
-      while ((isnan(e_next) || e_next > e) && cut_cnt < config.cut_iter && valid_cnt < config.valid_iter)
+      while ((std::isnan(e_next) || e_next > e) && cut_cnt < config.cut_iter 
+          && valid_cnt < config.valid_iter)
       {
-        if (isnan(e_next))
+        if (std::isnan(e_next))
         {
           valid_cnt++;
           lambda *= 10;
-          if (!config.silent) std::cout << boost::format("solution not valid, try lambda %g\n") % lambda;
+          if (!config.silent) 
+            printf("solution not valid, try lambda %g\n", lambda);
         }
         else {
           cut_cnt++;
           lambda *= 2;
-          if (!config.silent) std::cout << boost::format("energy not decrease, %g > %g, try lambda = %g\n") % e_next % e % lambda;
+          if (!config.silent) 
+            printf("energy not decrease, %g > %g, try lambda = %g\n", 
+                e_next, e, lambda);
         }
         hess += lambda * D;
         solver.factorize(hess);
@@ -123,13 +129,13 @@ namespace Chol
     if (!(grad.norm() > config.grad_norm || dX.norm() > config.dx_norm))
     {
       double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-      if (!config.silent) std::cout << boost::format("Finish Solving, takes %gs\n") % duration;
+      if (!config.silent) printf("Finish Solving, takes %gs\n", duration);
       return true;
     }
     else
     {
       double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-      if (!config.silent) std::cout << boost::format("Fail Solving, takes %gs\n") % duration;
+      if (!config.silent) printf("Fail Solving, takes %gs\n", duration);
       return false;
     }
   }

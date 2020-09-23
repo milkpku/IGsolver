@@ -1,11 +1,6 @@
-#include <iostream>
-#include <boost/format.hpp>
-
 #include "IGsolver/SQP_solver.h"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-
-
 
 int main(int argc, char* argv[])
 {
@@ -40,8 +35,8 @@ int main(int argc, char* argv[])
   Fun_iter func_iter = [](const int n_iter, const int cut_cnt, const dVec& X, 
     const double& eval, const dVec& dX, const dVec& grad_res, const dVec& c)
   {
-    std::cout << boost::format("[iter %d] (x1, x2) = (%g, %g), f(x) = %g, gnorm = %g, c = %g\n")
-      % n_iter % X(0) % X(1) % eval % grad_res.norm() % c(0);
+    printf("[iter %d] (x1, x2) = (%g, %g), f(x) = %g, gnorm = %g, c = %g\n",
+        n_iter, X(0), X(1), eval, grad_res.norm(), c(0));
   };
 
   SQP_Config config;

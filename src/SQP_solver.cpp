@@ -15,7 +15,6 @@
 
 #include <vector>
 #include <iostream>
-#include <boost/format.hpp>
 
 /*  You can replace SOLVER with any other LU solvers, such as
 *
@@ -34,7 +33,8 @@
 namespace IGsolver {
 namespace SQP
 {
-  void SQP_solver(dVec& solution, Fun_eval fun_eval,  Fun_grad_hess_Jc fun_grad, Fun_iter iter_fun, SQP_Config config)
+  void SQP_solver(dVec& solution, Fun_eval fun_eval,  Fun_grad_hess_Jc fun_grad, 
+      Fun_iter iter_fun, SQP_Config config)
   {
     /* initialization */
     double e;
@@ -114,20 +114,16 @@ namespace SQP
           for (int i = 0; i < hessian.outerSize(); i++)
             for (SpMat::InnerIterator it(hessian, i); it; ++it)
             {
-              if (isnan(it.value()))
-              {
-                std::cout << boost::format("NaN in hessian : (%d, %d)\n") % it.row() % it.col();
-              }
+              if (std::isnan(it.value()))
+                printf("NaN in hessian : (%d, %d)\n", it.row(), it.col());
             }
 
           // assert Jc nan
           for (int i = 0; i < Jc.outerSize(); i++)
             for (SpMat::InnerIterator it(Jc, i); it; ++it)
             {
-              if (isnan(it.value()))
-              {
-                std::cout << boost::format("NaN in Jc : (%d, %d)\n") % it.row() % it.col();
-              }
+              if (std::isnan(it.value()))
+                printf("NaN in Jc : (%d, %d)\n", it.row(), it.col());
             }
         }
         assert(false && "numerical error");
@@ -143,10 +139,10 @@ namespace SQP
       int cut_cnt = 0;
       double e_start = e + lambda.dot(c) + config.mu * c.squaredNorm();
       double e_next = merit_function(solution, dX, lambda);
-      while ((isnan(e_next) || e_next > e_start) && cut_cnt < config.cut_iter)
+      while ((std::isnan(e_next) || e_next > e_start) && cut_cnt < config.cut_iter)
       {
-        std::cout << boost::format("[Energy cut]: e_next > e , %g > %g\n") % e_next % e_start;
-        if (!isnan(e_next)) cut_cnt++;
+        printf("[Energy cut]: e_next > e , %g > %g\n", e_next, e_start);
+        if (!std::isnan(e_next)) cut_cnt++;
         dX /= 2;
         e_next = merit_function(solution, dX, lambda);
       }
@@ -166,7 +162,7 @@ namespace SQP
     }
 
     /* finish solving */
-    std::cout << boost::format("Finish Solving\n");
+    printf("Finish Solving\n");
   }
 }
 }

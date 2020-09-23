@@ -1,14 +1,14 @@
 # IGsolver
 
-This library implements basic optimization algorithms, including [Newton's Method](https://en.wikipedia.org/wiki/Newton%27s_method) for unconstrained problem and [SQP method](https://en.wikipedia.org/wiki/Sequential_quadratic_programming) for constrained problem. It has [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) as matrix wrapper and take modern C++ function object as input.
+This library implements basic optimization algorithms, including [Newton's Method](https://en.wikipedia.org/wiki/Newton%27s_method) for unconstrained problems and [SQP method](https://en.wikipedia.org/wiki/Sequential_quadratic_programming) for constrained problems. It uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) as matrix wrapper and take modern C++ function object as input.
 
 ### Unconstrained problem
-`IGsolver::Chol_solver` uses Newton's Method to solve unconstrained problem, and implements [LM method](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) to solve singularity. You can customize the shifting matrix of LM method.
+`IGsolver::Chol_solver` uses Newton's Method to solve unconstrained problems, and implements [LM method](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) to resolve singularity. You can customize the shifting matrix of LM method.
 
-If the hessian of optimization problem is not positive definite, Cholesky decomposition may fail. To fix this problem, change `SOLVER` defined in `chol_solver.cpp` to sparse matrix solver which support non-positive definite matrix, like LU solver and LDLT solver.  
+If the hessian of optimization problem is not positive definite, Cholesky decomposition may fail. To fix this problem, change `SOLVER` defined in `chol_solver.cpp` to sparse matrix solvers that support non-positive definite matrices, like LU solver or LDLT solver.  
 
 ### Constrained problem
-`IGsolver::SQP_solver` uses Sequential Quadratic Programming (SQP) method to solve constrained problem. It takes [augmented Lagrangian](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method) as merit function, and LU matrix solver to decomposite SQP matrix.
+`IGsolver::SQP_solver` uses Sequential Quadratic Programming (SQP) method to solve constrained problems. It takes [augmented Lagrangian](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method) as merit function, and LU solver to decomposite SQP matrix.
 
 ## Installation
 
@@ -58,8 +58,8 @@ After compilation, you can get library `IGsolver.lib`, link it to your own proje
 
   Fun_iter f_iter = [](const int n_iter, const int cut_cnt, const dVec& X, const double& eval, const dVec& dX, const dVec& grad)
   {
-    std::cout << boost::format("[iter %d] e = %g, grad = %g, dX = %g, cut_cnt = %d\n") 
-      % n_iter % eval % grad.norm() % dX.norm() % cut_cnt;
+    printf("[iter %d] e = %g, grad = %g, dX = %g, cut_cnt = %d\n", 
+      n_iter, eval, grad.norm(), dX.norm(), cut_cnt);
   };
 
   Chol_Config config;
@@ -103,8 +103,8 @@ After compilation, you can get library `IGsolver.lib`, link it to your own proje
   Fun_iter func_iter = [](const int n_iter, const int cut_cnt, const dVec& X, 
     const double& eval, const dVec& dX, const dVec& grad_res, const dVec& c)
   {
-    std::cout << boost::format("[iter %d] (x1, x2) = (%g, %g), f(x) = %g, gnorm = %g, c = %g\n")
-      % n_iter % X(0) % X(1) % eval % grad_res.norm() % c(0);
+    printf("[iter %d] (x1, x2) = (%g, %g), f(x) = %g, gnorm = %g, c = %g\n",
+        n_iter, X(0), X(1), eval, grad_res.norm(), c(0));
   };
 
   SQP_Config config;
@@ -115,21 +115,20 @@ After compilation, you can get library `IGsolver.lib`, link it to your own proje
 
 ```
 
-
 ## Advanced Usage
 
-Eigen's sparse matrix solver is slow when matrix becomes big, so please consider other sparse matrix solver like [PARDISO](https://www.pardiso-project.org/) or [SuiteSparse](http://faculty.cse.tamu.edu/davis/suitesparse.html). Fortunately, Eigen has convenient API to connect to PARDISO and SuiteSparse. 
+Eigen's sparse matrix solver is slow when matrix becomes big, so please consider other sparse matrix solvers like [PARDISO](https://www.pardiso-project.org/) or [SuiteSparse](http://faculty.cse.tamu.edu/davis/suitesparse.html). Fortunately, Eigen has convenient API to connect PARDISO and SuiteSparse. 
 
 Just redefine `SOLVER` in `src/chol_solver.cpp` and `src/SQP_solver.cpp` as recommended in comment. For example, adding
 ```c++
  #include <Eigen/CholmodSupport>
  #define SOLVER Eigen::CholmodSupernodalLLT<SpMat>
 ```
- in the beginning of `src/Chol_solver.cpp` replaces Eigen's solver with SuiteSparse Cholesky solver, which speed up the decomposition for several magnitude. Also, adding
+ in the beginning of `src/Chol_solver.cpp` replaces Eigen's solver with SuiteSparse Cholesky solver, which speeds up the decomposition for several magnitudes. Also, adding
 ```c++
   #include <Eigen/UmfPackSupport>
   #define SOLVER Eigen::UmfPackLU<SpMat>
  ```
-in the beginning of `src/SQP_solver.cpp` replacces Eigen's solver with SuiteSparse Umfpack LU solver. For more information of thrid-party sparse matrix solver, please refer to Eigen's manual of [Solving Sparse System](https://eigen.tuxfamily.org/dox/group__TopicSparseSystems.html).
+in the beginning of `src/SQP_solver.cpp` replaces Eigen's solver with SuiteSparse Umfpack LU solver. For more information of thrid-party sparse matrix solvers, please refer to Eigen's manual of [Solving Sparse System](https://eigen.tuxfamily.org/dox/group__TopicSparseSystems.html).
 
-There are also some config settings in `Chol_config` and `SQP_config`, which are self-documented.
+You can customize config settings in `Chol_config` and `SQP_config`, which are self-documented.
