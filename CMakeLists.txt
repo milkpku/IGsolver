@@ -8,3 +8,4 @@ add_library(IGsolver ${solver_list})
 
 add_subdirectory(example/NR_solver/)
 add_subdirectory(example/SQP_solver/)
+add_subdirectory(example/GN_solver/)
