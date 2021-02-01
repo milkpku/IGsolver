@@ -6,5 +6,5 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 file(GLOB solver_list ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_library(IGsolver ${solver_list})
 
-add_subdirectory(example/Chol_solver/)
+add_subdirectory(example/NR_solver/)
 add_subdirectory(example/SQP_solver/)

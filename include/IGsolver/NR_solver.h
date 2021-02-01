@@ -17,7 +17,7 @@
 #include <Eigen/Sparse>
 
 namespace IGsolver{
-  namespace Chol{
+  namespace NR{
 
     typedef Eigen::VectorXd               dVec;
     typedef Eigen::SparseMatrix<double>   SpMat;
@@ -29,7 +29,7 @@ namespace IGsolver{
       const dVec& dX, const dVec& grad)> Fun_iter;
 
 
-    struct Chol_Config
+    struct NR_Config
     {
       int max_iter = 200;
       double grad_norm = 1e-5;
@@ -41,7 +41,7 @@ namespace IGsolver{
       bool silent = false;
     };
 
-    bool Chol_solver(dVec& solution, Fun_eval fun_eval, Fun_grad_hessian fun_grad, Fun_iter iter_fun, Chol_Config config);
+    bool NR_solver(dVec& solution, Fun_eval fun_eval, Fun_grad_hessian fun_grad, Fun_iter iter_fun, NR_Config config);
   
   }
 }

@@ -5,11 +5,11 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "IGsolver/Chol_solver.h"
+#include "IGsolver/NR_solver.h"
 
 int main(int argc, char* argv[])
 {
-  using namespace IGsolver::Chol;
+  using namespace IGsolver::NR;
   /* f = 0.5 * x1^2 * (x_1^2/6 + 1) + x2 * arctan(x2) - 0.5 * ln(x2^2 + 1)
    * f' = [x1^3/3 + x1; arctan(x2)]
    * f'' = diag{x1^2 + 1, 1/(1+x2^2)}
@@ -49,10 +49,10 @@ int main(int argc, char* argv[])
       n_iter, eval, grad.norm(), dX.norm(), cut_cnt);
   };
 
-  Chol_Config config;
+  NR_Config config;
   dVec sol(2);
   sol << 1, 0.7;
-  Chol_solver(sol, f_eval, f_grad, f_iter, config);
+  NR_solver(sol, f_eval, f_grad, f_iter, config);
 
   system("pause");
   return 0;

@@ -11,7 +11,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-#include "IGsolver/Chol_solver.h"
+#include "IGsolver/NR_solver.h"
 
 #include <ctime>
 #include <iostream>
@@ -30,10 +30,10 @@
 #endif
 
 namespace IGsolver {
-namespace Chol
+namespace NR
 {
-  bool Chol_solver(dVec& X, Fun_eval fun_eval, Fun_grad_hessian fun_grad, 
-      Fun_iter iter_fun, Chol_Config config)
+  bool NR_solver(dVec& X, Fun_eval fun_eval, Fun_grad_hessian fun_grad, 
+      Fun_iter iter_fun, NR_Config config)
   {
     std::clock_t start;
     start = std::clock();
